@@ -67,12 +67,27 @@ public class FrontmatterParser {
      * @return The frontmatter content without delimiters, or empty string if none
      */
     public String extractFrontmatter(String content) {
-        if (!content.startsWith("---\n")) {
+        if (!content.startsWith("---\n") && !content.startsWith("---\r\n")) {
             return "";
         }
         
+        // Look for the end of frontmatter
         int endIndex = content.indexOf("\n---\n");
         if (endIndex == -1) {
+            endIndex = content.indexOf("\n---\r\n");
+        }
+        
+        // Handle case where file only contains frontmatter (ends with --- but no content after)
+        if (endIndex == -1) {
+            // Check if the content ends with ---
+            String trimmed = content.trim();
+            if (trimmed.endsWith("---")) {
+                // Find the last occurrence of --- that's on its own line
+                int lastDashIndex = trimmed.lastIndexOf("\n---");
+                if (lastDashIndex > 0) {
+                    return content.substring("---\n".length(), lastDashIndex);
+                }
+            }
             return "";
         }
         

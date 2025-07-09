@@ -20,7 +20,8 @@ public class Arc {
         this.fileProcessor = new FileProcessor();
         FrontmatterParser frontmatterParser = new FrontmatterParser();
         TemplateEngine templateEngine = new TemplateEngine();
-        this.pageProcessor = new PageProcessor(frontmatterParser, fileProcessor, templateEngine);
+        RssFeedGenerator rssFeedGenerator = new RssFeedGenerator(fileProcessor);
+        this.pageProcessor = new PageProcessor(frontmatterParser, fileProcessor, templateEngine, rssFeedGenerator);
         this.currentDir = Paths.get("");
         this.appDir = currentDir.resolve(Constants.APP_DIR);
         this.siteDir = currentDir.resolve(Constants.SITE_DIR);

@@ -20,12 +20,14 @@ public class PageProcessor {
     private final FrontmatterParser frontmatterParser;
     private final FileProcessor fileProcessor;
     private final TemplateEngine templateEngine;
+    private final RssFeedGenerator rssFeedGenerator;
     
     public PageProcessor(FrontmatterParser frontmatterParser, FileProcessor fileProcessor, 
-                        TemplateEngine templateEngine) {
+                        TemplateEngine templateEngine, RssFeedGenerator rssFeedGenerator) {
         this.frontmatterParser = frontmatterParser;
         this.fileProcessor = fileProcessor;
         this.templateEngine = templateEngine;
+        this.rssFeedGenerator = rssFeedGenerator;
     }
     
     /**
@@ -36,6 +38,9 @@ public class PageProcessor {
     public void processAllContent(Path appDir, Path siteDir) throws IOException {
         List<ContentItem>           allContent = new ArrayList<>();
         List<Map<String, String>>   posts = new ArrayList<>();
+        
+        // Load site configuration if it exists
+        Map<String, String> siteConfig = loadSiteConfig(appDir);
         
         // Process posts and pages
         Map<String, String> contentDirs = Map.of(
@@ -72,6 +77,28 @@ public class PageProcessor {
         for (ContentItem item : allContent) {
             generateHtml(item, appDir, siteDir);
         }
+        
+        // Generate RSS feed for posts
+        if (!posts.isEmpty()) {
+            rssFeedGenerator.generateFeed(posts, siteDir, siteConfig);
+        }
+    }
+    
+    /**
+     * Load site configuration from site.config file if it exists
+     */
+    private Map<String, String> loadSiteConfig(Path appDir) throws IOException {
+        Path configPath = appDir.resolve(Constants.SITE_CONFIG_FILE);
+        if (!Files.exists(configPath)) {
+            return null;
+        }
+        
+        String configContent = Files.readString(configPath);
+        String frontmatter = frontmatterParser.extractFrontmatter(configContent);
+        Map<String, String> config = frontmatterParser.parse(frontmatter);
+        
+        System.out.println("Loaded site configuration from: " + Constants.SITE_CONFIG_FILE);
+        return config;
     }
     
     private ContentItem processFile(Path file, Path appDir) throws IOException {
