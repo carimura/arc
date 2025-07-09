@@ -20,14 +20,14 @@ public class PageProcessor {
     private final FrontmatterParser frontmatterParser;
     private final FileProcessor fileProcessor;
     private final TemplateEngine templateEngine;
-    private final RssFeedGenerator rssFeedGenerator;
+    private final RssGenerator rssGenerator;
     
     public PageProcessor(FrontmatterParser frontmatterParser, FileProcessor fileProcessor, 
-                        TemplateEngine templateEngine, RssFeedGenerator rssFeedGenerator) {
+                        TemplateEngine templateEngine, RssGenerator rssGenerator) {
         this.frontmatterParser = frontmatterParser;
         this.fileProcessor = fileProcessor;
         this.templateEngine = templateEngine;
-        this.rssFeedGenerator = rssFeedGenerator;
+        this.rssGenerator = rssGenerator;
     }
     
     /**
@@ -80,7 +80,7 @@ public class PageProcessor {
         
         // Generate RSS feed for posts
         if (!posts.isEmpty()) {
-            rssFeedGenerator.generateFeed(posts, siteDir, siteConfig);
+            rssGenerator.generateFeed(posts, siteDir, siteConfig);
         }
     }
     

@@ -13,14 +13,14 @@ import java.util.Map;
 /**
  * Generates RSS 2.0 feed for blog posts.
  */
-public class RssFeedGenerator {
+public class RssGenerator {
     
     private static final DateTimeFormatter RFC_822_FORMATTER = 
         DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z");
     
     private final FileProcessor fileProcessor;
     
-    public RssFeedGenerator(FileProcessor fileProcessor) {
+    public RssGenerator(FileProcessor fileProcessor) {
         this.fileProcessor = fileProcessor;
     }
     

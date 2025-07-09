@@ -15,6 +15,7 @@ Warning: this was built in about 5 hours with an AI buddy because I wanted to re
 - Loops: `{for post in posts}...{% endfor %}`
 - Conditionals: `{% if variable %}...{% endif %}`
 - Includes: `{% include "header.html" %}`
+- RSS feed generation with configurable site metadata
 - Has a built-in hot reload mode for development
 - Uses `jpackage` to build a native executable
 
@@ -63,10 +64,28 @@ project/
 │   ├── posts/         # Blog posts in Markdown
 │   ├── pages/         # Static pages in Markdown
 │   ├── templates/     # HTML templates
-│   └── assets/        # Static assets (CSS, JS, images)
+│   ├── assets/        # Static assets (CSS, JS, images)
+│   └── site.config    # Site configuration (optional)
 └── site/              # Generated site (created by Arc)
 ```
 
+
+## Site Configuration
+
+Arc supports an optional `app/site.config` file for global site settings:
+
+```yaml
+---
+title: My Arc Site
+description: A beautiful website built with Arc
+url: https://example.com
+author: Your Name
+language: en-us
+rss_max_items: 10
+---
+```
+
+These settings are used for RSS feed generation and are available as template variables.
 
 ## Template System
 
