@@ -9,9 +9,13 @@ public class Constants {
     public static final String URL_VAR = "url";
     public static final String POSTS_VAR = "posts";
     public static final String TEMPLATE_VAR = "template";
+    public static final String TYPE_VAR = "type";
     public static final String DATE_VAR = "date";
     public static final String ACTIVE_NAV_VAR = "active_nav";
     public static final String LATEST_POST_VAR = "latest_post";
+
+    public static final String PAGE_TYPE = "page";
+    public static final String POST_TYPE = "post";
     
     // Directory names
     public static final String APP_DIR = "app";
@@ -37,7 +41,7 @@ public class Constants {
     public static final String VARIABLE_PATTERN = "\\{\\{\\s*%s\\s*\\}\\}";
     public static final String INCLUDE_PATTERN = "\\{%\\s*include\\s+\"([^\"]+)\"\\s*%\\}";
     public static final String IF_PATTERN = "\\{\\%\\s*if\\s+([^%}]+)\\s*\\%\\}(.*?)(\\{\\%\\s*endif\\s*\\%\\}|$)";
-    public static final String FOR_PATTERN = "\\{\\%\\s*for\\s+(\\w+)\\s+in\\s+(\\w+)\\s*\\%\\}(.*?)\\{\\%\\s*endfor\\s*\\%\\}";
+    public static final String FOR_PATTERN = "\\{\\%\\s*for\\s+(\\w+)\\s+in\\s+(\\w+)(?:\\s+limit\\s+(\\d+))?\\s*\\%\\}(.*?)\\{\\%\\s*endfor\\s*\\%\\}";
     
 
     public static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");

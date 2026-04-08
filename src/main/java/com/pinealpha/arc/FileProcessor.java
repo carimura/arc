@@ -89,13 +89,26 @@ public class FileProcessor {
      * @return The path where the HTML file should be written
      */
     public Path determineOutputPath(Path sourceFile, Path appDir, Path siteDir) {
+        return determineOutputPath(sourceFile, appDir, siteDir, null);
+    }
+
+    public Path determineOutputPath(Path sourceFile, Path appDir, Path siteDir, String contentType) {
         String fileName = sourceFile.getFileName().toString()
             .replace(".md", ".html");
         
-        // Check if file is in the pages directory - these go to site root
+        // Check if file is in the pages directory - these go to site root by default.
         if (sourceFile.getParent() != null && 
-            sourceFile.getParent().endsWith(Constants.PAGES_DIR)) {
+            sourceFile.getParent().endsWith(Constants.PAGES_DIR) &&
+            (contentType == null || contentType.isBlank() || Constants.PAGE_TYPE.equals(contentType))) {
             return siteDir.resolve(fileName);
+        }
+
+        if (Constants.POST_TYPE.equals(contentType)) {
+            return siteDir.resolve(Constants.POSTS_DIR).resolve(fileName);
+        }
+
+        if (contentType != null && !contentType.isBlank() && !Constants.PAGE_TYPE.equals(contentType)) {
+            return siteDir.resolve(contentType).resolve(fileName);
         }
         
         // For other files, maintain directory structure

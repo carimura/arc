@@ -53,6 +53,8 @@ This will also run jpackage to create a local app (currently supported platform:
 
 7. Open http://localhost:8000 in your browser.
 
+Run `arc --help` to print usage and content routing details.
+
 
 
 ## Directory Structure
@@ -68,6 +70,8 @@ project/
 │   └── site.config    # Site configuration (optional)
 └── site/              # Generated site (created by Arc)
 ```
+
+Content with `type: page` in `app/pages` is generated at the site root. `type: post` generates under `site/posts/` to preserve the existing blog URL structure. Other content types are generated under a matching output directory, so `type: til` generates under `site/til/`.
 
 
 ## Site Configuration

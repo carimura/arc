@@ -127,13 +127,17 @@ public class TemplateEngine {
         while (matcher.find()) {
             String itemVar = matcher.group(1);
             String collectionName = matcher.group(2);
-            String loopContent = matcher.group(3);
-            
+            String limitStr = matcher.group(3);
+            String loopContent = matcher.group(4);
+
             Object collection = variables.get(collectionName);
             StringBuilder loopResult = new StringBuilder();
-            
+
             if (collection instanceof List<?> items) {
+                int limit = limitStr != null ? Integer.parseInt(limitStr) : items.size();
+                int count = 0;
                 for (Object item : items) {
+                    if (count++ >= limit) break;
                     Map<String, Object> loopVariables = new HashMap<>(variables);
                     loopVariables.put(itemVar, item);
                     

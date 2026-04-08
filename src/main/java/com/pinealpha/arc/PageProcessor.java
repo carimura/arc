@@ -53,13 +53,13 @@ public class PageProcessor {
                 List<Path> files = fileProcessor.findMarkdownFiles(dir);
                 System.out.println("Found " + files.size() + " markdown " + entry.getValue() + " to process");
                 for (Path file : files) {
-                    allContent.add(processFile(file, appDir));
+                    allContent.add(processFile(file, appDir, siteDir));
                 }
             }
         }
         // Identify and sort posts
         for (ContentItem item : allContent) {
-            if (item.metadata.get("type").equals("post")) {
+            if (Constants.POST_TYPE.equals(item.metadata.get(Constants.TYPE_VAR))) {
                 posts.add(item.metadata);
             }
         }
@@ -101,7 +101,7 @@ public class PageProcessor {
         return config;
     }
     
-    private ContentItem processFile(Path file, Path appDir) throws IOException {
+    private ContentItem processFile(Path file, Path appDir, Path siteDir) throws IOException {
         String content = Files.readString(file);
         String frontmatter = frontmatterParser.extractFrontmatter(content);
         String markdownContent = frontmatterParser.extractContent(content);
@@ -109,7 +109,7 @@ public class PageProcessor {
         Map<String, String> metadata = new HashMap<>(frontmatterParser.parse(frontmatter));
         
         // Add computed fields
-        metadata.put(Constants.URL_VAR, generateUrl(file, appDir));
+        metadata.put(Constants.URL_VAR, generateUrl(file, appDir, siteDir, metadata));
         metadata.put("content", markdownContent);
         metadata.put("rendered_content", convertMarkdownToHtml(markdownContent));
         
@@ -143,14 +143,25 @@ public class PageProcessor {
         String finalHtml = templateEngine.processTemplate(template, item.metadata, htmlContent, templatesDir);
         
         // Write output
-        Path outputPath = fileProcessor.determineOutputPath(item.file, appDir, siteDir);
+        Path outputPath = fileProcessor.determineOutputPath(
+            item.file,
+            appDir,
+            siteDir,
+            item.metadata.get(Constants.TYPE_VAR)
+        );
         fileProcessor.writeFile(outputPath, finalHtml);
         
         System.out.println("Generated: " + siteDir.relativize(outputPath));
     }
     
-    private String generateUrl(Path file, Path appDir) {
-        return "/" + appDir.relativize(file)
+    private String generateUrl(Path file, Path appDir, Path siteDir, Map<String, String> metadata) {
+        Path outputPath = fileProcessor.determineOutputPath(
+            file,
+            appDir,
+            siteDir,
+            metadata.get(Constants.TYPE_VAR)
+        );
+        return "/" + siteDir.relativize(outputPath)
             .toString()
             .replace("\\", "/")
             .replace(".md", ".html");

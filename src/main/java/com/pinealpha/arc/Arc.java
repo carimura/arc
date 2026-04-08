@@ -31,6 +31,11 @@ public class Arc {
      * Main method to run the site generation process
      */
     public static void main(String[] args) throws Exception {
+        if (args.length > 0 && ("--help".equals(args[0]) || "-h".equals(args[0]))) {
+            printHelp();
+            return;
+        }
+
         Arc arc = new Arc();
         
         // Check for watch mode
@@ -41,6 +46,26 @@ public class Arc {
         } else {
             arc.generate();
         }
+    }
+
+    private static void printHelp() {
+        System.out.println("""
+            Arc - a simple static site generator
+
+            Usage:
+              arc            Generate the site from ./app into ./site
+              arc --watch    Generate, then watch ./app and rebuild on changes
+              arc --help     Show this help
+
+            Content:
+              Arc reads Markdown from app/posts and app/pages.
+              Frontmatter type controls the output directory:
+                type: page  -> site/<filename>.html for files in app/pages
+                type: post  -> site/posts/<filename>.html
+                type: til   -> site/til/<filename>.html
+
+              Other type values follow the same pattern: site/<type>/<filename>.html.
+            """);
     }
     
     /**
