@@ -16,6 +16,8 @@ public class Constants {
 
     public static final String PAGE_TYPE = "page";
     public static final String POST_TYPE = "post";
+    public static final String TIL_TYPE = "til";
+    public static final String TILS_VAR = "tils";
     
     // Directory names
     public static final String APP_DIR = "app";

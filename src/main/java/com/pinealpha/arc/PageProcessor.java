@@ -38,6 +38,7 @@ public class PageProcessor {
     public void processAllContent(Path appDir, Path siteDir) throws IOException {
         List<ContentItem>           allContent = new ArrayList<>();
         List<Map<String, String>>   posts = new ArrayList<>();
+        List<Map<String, String>>   tils = new ArrayList<>();
         
         // Load site configuration if it exists
         Map<String, String> siteConfig = loadSiteConfig(appDir);
@@ -57,16 +58,21 @@ public class PageProcessor {
                 }
             }
         }
-        // Identify and sort posts
+        // Identify and sort posts and tils
         for (ContentItem item : allContent) {
-            if (Constants.POST_TYPE.equals(item.metadata.get(Constants.TYPE_VAR))) {
+            String type = item.metadata.get(Constants.TYPE_VAR);
+            if (Constants.POST_TYPE.equals(type)) {
                 posts.add(item.metadata);
+            } else if (Constants.TIL_TYPE.equals(type)) {
+                tils.add(item.metadata);
             }
         }
         posts.sort(new PostDateComparator());
+        tils.sort(new PostDateComparator());
         
         // Register global template variables
         templateEngine.registerGlobalVariable(Constants.POSTS_VAR, posts);
+        templateEngine.registerGlobalVariable(Constants.TILS_VAR, tils);
         if (!posts.isEmpty()) {
             templateEngine.registerGlobalVariable(Constants.LATEST_POST_VAR, posts.get(0));
         } else {
