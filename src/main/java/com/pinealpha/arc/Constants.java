@@ -7,7 +7,6 @@ public class Constants {
     // Template variable names
     public static final String CONTENT_VAR = "content";
     public static final String URL_VAR = "url";
-    public static final String POSTS_VAR = "posts";
     public static final String TEMPLATE_VAR = "template";
     public static final String TYPE_VAR = "type";
     public static final String DATE_VAR = "date";
@@ -16,8 +15,6 @@ public class Constants {
 
     public static final String PAGE_TYPE = "page";
     public static final String POST_TYPE = "post";
-    public static final String TIL_TYPE = "til";
-    public static final String TILS_VAR = "tils";
     
     // Directory names
     public static final String APP_DIR = "app";
@@ -26,6 +23,7 @@ public class Constants {
     public static final String PAGES_DIR = "pages";
     public static final String TEMPLATES_DIR = "templates";
     public static final String ASSETS_DIR = "assets";
+    public static final String DATA_DIR = "data";
     
     // RSS and Config constants
     public static final String RSS_FEED_FILE = "feed.xml";

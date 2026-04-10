@@ -7,9 +7,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Stream;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Processes all content (pages and posts) with unified logic.
@@ -36,13 +40,11 @@ public class PageProcessor {
      * @param siteDir Output site directory
      */
     public void processAllContent(Path appDir, Path siteDir) throws IOException {
-        List<ContentItem>           allContent = new ArrayList<>();
-        List<Map<String, String>>   posts = new ArrayList<>();
-        List<Map<String, String>>   tils = new ArrayList<>();
-        
+        List<ContentItem> allContent = new ArrayList<>();
+
         // Load site configuration if it exists
         Map<String, String> siteConfig = loadSiteConfig(appDir);
-        
+
         // Process posts and pages
         Map<String, String> contentDirs = Map.of(
             Constants.POSTS_DIR, "posts",
@@ -58,36 +60,141 @@ public class PageProcessor {
                 }
             }
         }
-        // Identify and sort posts and tils
+
+        // Group content by frontmatter type, sort each group by date desc,
+        // and register every group as a global template collection.
+        Map<String, List<Map<String, String>>> collectionsByType = new LinkedHashMap<>();
         for (ContentItem item : allContent) {
             String type = item.metadata.get(Constants.TYPE_VAR);
-            if (Constants.POST_TYPE.equals(type)) {
-                posts.add(item.metadata);
-            } else if (Constants.TIL_TYPE.equals(type)) {
-                tils.add(item.metadata);
-            }
+            if (type == null || type.isBlank()) continue;
+            collectionsByType
+                .computeIfAbsent(type, k -> new ArrayList<>())
+                .add(item.metadata);
         }
-        posts.sort(new PostDateComparator());
-        tils.sort(new PostDateComparator());
-        
-        // Register global template variables
-        templateEngine.registerGlobalVariable(Constants.POSTS_VAR, posts);
-        templateEngine.registerGlobalVariable(Constants.TILS_VAR, tils);
-        if (!posts.isEmpty()) {
+
+        PostDateComparator dateComparator = new PostDateComparator();
+        for (Map.Entry<String, List<Map<String, String>>> entry : collectionsByType.entrySet()) {
+            List<Map<String, String>> items = entry.getValue();
+            items.sort(dateComparator);
+            templateEngine.registerGlobalVariable(collectionVariableName(entry.getKey()), items);
+        }
+
+        // latest_post is exposed as the newest entry of the "post" collection
+        List<Map<String, String>> posts = collectionsByType.get(Constants.POST_TYPE);
+        if (posts != null && !posts.isEmpty()) {
             templateEngine.registerGlobalVariable(Constants.LATEST_POST_VAR, posts.get(0));
         } else {
             templateEngine.registerGlobalVariable(Constants.LATEST_POST_VAR, null);
         }
-        
+
+        // Load JSON data files from app/data and register each as a global template variable
+        loadDataFiles(appDir);
+
         // Generate HTML for all content
         for (ContentItem item : allContent) {
             generateHtml(item, appDir, siteDir);
         }
-        
+
         // Generate RSS feed for posts
-        if (!posts.isEmpty()) {
+        if (posts != null && !posts.isEmpty()) {
             rssGenerator.generateFeed(posts, siteDir, siteConfig);
         }
+    }
+
+    /**
+     * Convert a frontmatter type into the template collection variable name.
+     * Appends 's' to pluralize, then converts hyphens to underscores so the
+     * resulting name is a valid template identifier (the loop regex only
+     * accepts \w characters).
+     */
+    private String collectionVariableName(String type) {
+        return (type + "s").replace('-', '_');
+    }
+
+    /**
+     * Scan app/data for *.json files and register each one as a global
+     * template variable. Filename basename (with hyphens replaced by
+     * underscores) becomes the variable name. JSON objects are exposed as
+     * Map for {{ var.key }} access; JSON arrays are exposed as List for
+     * {% for item in var %} loops.
+     */
+    private void loadDataFiles(Path appDir) throws IOException {
+        Path dataDir = appDir.resolve(Constants.DATA_DIR);
+        if (!Files.exists(dataDir) || !Files.isDirectory(dataDir)) {
+            return;
+        }
+
+        List<Path> jsonFiles;
+        try (Stream<Path> stream = Files.list(dataDir)) {
+            jsonFiles = stream
+                .filter(Files::isRegularFile)
+                .filter(p -> p.getFileName().toString().endsWith(".json"))
+                .sorted()
+                .toList();
+        }
+
+        for (Path file : jsonFiles) {
+            String filename = file.getFileName().toString();
+            String basename = filename.substring(0, filename.length() - ".json".length());
+            String varName = basename.replace('-', '_');
+
+            String contents = Files.readString(file);
+            Object value;
+            try {
+                value = parseJsonValue(contents);
+            } catch (JSONException e) {
+                throw new IOException("Failed to parse data file " + filename + ": " + e.getMessage(), e);
+            }
+
+            templateEngine.registerGlobalVariable(varName, value);
+            System.out.println("Loaded data file: " + filename + " as " + varName);
+        }
+    }
+
+    /**
+     * Parse a JSON document into Java types compatible with the template engine.
+     * Top-level objects become LinkedHashMap, top-level arrays become ArrayList.
+     * Anything else (top-level string/number/etc.) is rejected — data files are
+     * meant to be either records or collections of records.
+     */
+    private Object parseJsonValue(String json) {
+        String trimmed = json.trim();
+        if (trimmed.startsWith("[")) {
+            return jsonArrayToList(new JSONArray(trimmed));
+        }
+        if (trimmed.startsWith("{")) {
+            return jsonObjectToMap(new JSONObject(trimmed));
+        }
+        throw new JSONException("Top-level JSON value must be an object or array");
+    }
+
+    private Map<String, Object> jsonObjectToMap(JSONObject obj) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (String key : obj.keySet()) {
+            result.put(key, convertJsonValue(obj.get(key)));
+        }
+        return result;
+    }
+
+    private List<Object> jsonArrayToList(JSONArray arr) {
+        List<Object> result = new ArrayList<>();
+        for (int i = 0; i < arr.length(); i++) {
+            result.add(convertJsonValue(arr.get(i)));
+        }
+        return result;
+    }
+
+    private Object convertJsonValue(Object value) {
+        if (value instanceof JSONObject obj) {
+            return jsonObjectToMap(obj);
+        }
+        if (value instanceof JSONArray arr) {
+            return jsonArrayToList(arr);
+        }
+        if (value == JSONObject.NULL) {
+            return null;
+        }
+        return value;
     }
     
     /**

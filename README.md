@@ -67,11 +67,70 @@ project/
 │   ├── pages/         # Static pages in Markdown
 │   ├── templates/     # HTML templates
 │   ├── assets/        # Static assets (CSS, JS, images)
+│   ├── data/          # JSON data files (optional)
 │   └── site.config    # Site configuration (optional)
 └── site/              # Generated site (created by Arc)
 ```
 
 Content with `type: page` in `app/pages` is generated at the site root. `type: post` generates under `site/posts/` to preserve the existing blog URL structure. Other content types are generated under a matching output directory, so `type: til` generates under `site/til/`.
+
+## Collections
+
+Every distinct frontmatter `type:` value automatically becomes a global template collection variable. The naming rule is: append `s` to the type, then convert any hyphens to underscores so the result is a valid template identifier.
+
+| Frontmatter type | Collection variable |
+|------------------|---------------------|
+| `post`           | `posts`             |
+| `til`            | `tils`              |
+| `x-post`         | `x_posts`           |
+| `event`          | `events`            |
+
+Collections are sorted by `date:` in reverse chronological order. Use them in any template:
+
+```html
+{% for til in tils %}
+  <li><a href="{{ til.url }}">{{ til.title }}</a></li>
+{% endfor %}
+```
+
+## Data Files
+
+JSON files placed in `app/data/` are loaded at build time and registered as global template variables. The filename (minus the `.json` extension, with hyphens converted to underscores) becomes the variable name.
+
+| File                        | Variable    |
+|-----------------------------|-------------|
+| `app/data/links.json`       | `links`     |
+| `app/data/x-posts.json`     | `x_posts`   |
+| `app/data/site-meta.json`   | `site_meta` |
+
+A JSON **array** is exposed as a list and used with `{% for %}` loops:
+
+```json
+[
+  { "name": "GitHub",   "url": "https://github.com/me" },
+  { "name": "LinkedIn", "url": "https://linkedin.com/in/me" }
+]
+```
+
+```html
+{% for link in links %}
+  <a href="{{ link.url }}">{{ link.name }}</a>
+{% endfor %}
+```
+
+A JSON **object** is exposed as a map and accessed with dotted notation:
+
+```json
+{ "theme": "dark", "tagline": "Built with Arc" }
+```
+
+```html
+<body class="{{ settings.theme }}">
+  <p>{{ settings.tagline }}</p>
+</body>
+```
+
+Items inside a `{% for %}` loop must be flat — the template engine substitutes one level of `item.key` references and does not recurse into nested objects or arrays. Nested structures outside of loops can be reached with chained dots (`{{ var.outer.inner }}`). Non-`.json` files in `app/data/` are ignored. Invalid JSON aborts the build with an error that names the offending file.
 
 
 ## Site Configuration
