@@ -23,6 +23,11 @@
             <version>${commonmark.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark-ext-gfm-strikethrough</artifactId>
+            <version>${commonmark.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20240303</version>

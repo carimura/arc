@@ -8,6 +8,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Stream;
+import org.commonmark.Extension;
+import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
@@ -307,8 +309,9 @@ public class PageProcessor {
      * Convert markdown text to HTML using CommonMark
      */
     private String convertMarkdownToHtml(String markdown) {
-        Parser parser = Parser.builder().build();
-        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        List<Extension> extensions = List.of(StrikethroughExtension.create());
+        Parser parser = Parser.builder().extensions(extensions).build();
+        HtmlRenderer renderer = HtmlRenderer.builder().extensions(extensions).build();
         Node document = parser.parse(markdown);
         return renderer.render(document);
     }
