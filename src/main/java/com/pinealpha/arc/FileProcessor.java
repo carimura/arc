@@ -80,7 +80,39 @@ public class FileProcessor {
         
         System.out.println("Copied assets to: " + targetAssets);
     }
-    
+
+    /**
+     * Copy every file under app/root/ to the site root, preserving subdirectories.
+     * Intended for static files that must live at the site root (robots.txt,
+     * favicon.ico, CNAME, etc.). No-op if app/root/ does not exist.
+     */
+    public void copyRootFiles(Path appDir, Path siteDir) throws IOException {
+        Path sourceRoot = appDir.resolve(Constants.ROOT_DIR);
+        if (!Files.exists(sourceRoot)) {
+            return;
+        }
+
+        Files.walkFileTree(sourceRoot, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                    throws IOException {
+                Path targetSubDir = siteDir.resolve(sourceRoot.relativize(dir));
+                Files.createDirectories(targetSubDir);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                    throws IOException {
+                Path targetFile = siteDir.resolve(sourceRoot.relativize(file));
+                Files.copy(file, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        System.out.println("Copied root files from: " + sourceRoot);
+    }
+
     /**
      * Determine the output path for a processed file
      * @param sourceFile The source Markdown file

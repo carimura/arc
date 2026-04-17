@@ -24,6 +24,7 @@ public class Constants {
     public static final String TEMPLATES_DIR = "templates";
     public static final String ASSETS_DIR = "assets";
     public static final String DATA_DIR = "data";
+    public static final String ROOT_DIR = "root";
     
     // RSS and Config constants
     public static final String RSS_FEED_FILE = "feed.xml";

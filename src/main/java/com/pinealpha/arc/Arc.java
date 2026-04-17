@@ -65,6 +65,9 @@ public class Arc {
                 type: til   -> site/til/<filename>.html
 
               Other type values follow the same pattern: site/<type>/<filename>.html.
+
+              Static files in app/root/ are copied verbatim to the site root
+              (robots.txt, favicon.ico, CNAME, etc.), preserving subdirectories.
             """);
     }
     
@@ -95,6 +98,7 @@ public class Arc {
         
         fileProcessor.createDirectory(siteDir);
         fileProcessor.copyAssets(appDir, siteDir);
+        fileProcessor.copyRootFiles(appDir, siteDir);
         pageProcessor.processAllContent(appDir, siteDir);
         
         System.out.println("-------- SITE GENERATION COMPLETE --------");
